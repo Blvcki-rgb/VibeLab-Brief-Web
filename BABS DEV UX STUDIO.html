@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brief Web — Babs Dev UX Studio</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,480;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg:#10131c;
+    --surface:#171b28;
+    --surface-2:#1c2233;
+    --surface-3:#242b40;
+    --border: rgba(243,239,230,0.10);
+    --border-strong: rgba(243,239,230,0.22);
+    --text:#f3efe6;
+    --text-muted:#a29c8d;
+    --amber:#e8a33d;
+    --amber-ink:#231705;
+    --amber-soft: rgba(232,163,61,0.14);
+    --teal:#3db3a2;
+    --teal-soft: rgba(46,158,143,0.16);
+    --brick:#d1746b;
+    --brick-soft: rgba(200,99,90,0.16);
+    --font-display:'Fraunces', Georgia, serif;
+    --font-body:'Inter', -apple-system, sans-serif;
+    --font-mono:'IBM Plex Mono', 'Courier New', monospace;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ background: var(--bg); }
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding: 48px 20px 80px;
+    line-height:1.55;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background:
+      radial-gradient(720px 420px at 12% -8%, rgba(232,163,61,0.10), transparent 60%),
+      radial-gradient(640px 480px at 108% 18%, rgba(46,158,143,0.09), transparent 55%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .shell{ position:relative; z-index:1; width:100%; max-width:720px; }
+
+  .eyebrow{
+    font-family: var(--font-mono);
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color: var(--teal);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:18px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--teal); }
+
+  header h1{
+    font-family: var(--font-display);
+    font-weight:600;
+    font-size: clamp(28px, 4vw, 38px);
+    line-height:1.15;
+    margin:0 0 14px;
+    text-wrap: balance;
+    color: var(--text);
+  }
+  header p{
+    color: var(--text-muted);
+    font-size:15px;
+    max-width:56ch;
+    margin:0 0 34px;
+  }
+
+  .progress{ margin-bottom:28px; }
+  .progress-track{ display:flex; gap:6px; margin-bottom:10px; }
+  .seg{ flex:1; height:4px; border-radius:2px; background: var(--surface-3); overflow:hidden; }
+  .seg span{ display:block; height:100%; width:0%; background: var(--amber); transition: width .35s ease; }
+  .seg.done span{ width:100%; background: var(--teal); }
+  .seg.active span{ width:100%; }
+  .progress-label{
+    font-family: var(--font-mono);
+    font-size:12px;
+    letter-spacing:.05em;
+    color: var(--text-muted);
+    display:flex; justify-content:space-between;
+  }
+  .progress-label b{ color: var(--text); font-weight:500; }
+
+  .card{
+    background: var(--surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:38px 40px 30px;
+    box-shadow: 0 30px 60px -30px rgba(0,0,0,0.6);
+  }
+  @media (max-width:600px){ .card{ padding:28px 22px 24px; } }
+
+  .step h2{
+    font-family: var(--font-display);
+    font-size:22px;
+    font-weight:600;
+    margin:0 0 8px;
+  }
+  .step-intro{ color:var(--text-muted); font-size:14px; margin:0 0 26px; }
+
+  .field{ margin-bottom:24px; }
+  .field:last-child{ margin-bottom:0; }
+  .field label.field-label{
+    display:flex; gap:6px; align-items:baseline;
+    font-family: var(--font-mono);
+    font-size:11.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color: var(--text-muted);
+    margin-bottom:10px;
+  }
+  .field-label .req{ color: var(--amber); }
+  .field-label .opt{ text-transform:none; letter-spacing:0; font-size:11px; color:#6f6a5f; }
+  .hint{ font-size:12.5px; color:#726d61; margin-top:7px; }
+
+  input[type=text], input[type=email], input[type=tel], input[type=url], textarea{
+    width:100%;
+    background: var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px 14px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size:14.5px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  textarea{ resize:vertical; min-height:84px; }
+  input::placeholder, textarea::placeholder{ color:#5c5748; }
+  input:focus, textarea:focus{
+    outline:none;
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px var(--amber-soft);
+  }
+
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:560px){ .row2{ grid-template-columns:1fr; } }
+
+  .choices{ display:flex; flex-wrap:wrap; gap:10px; }
+  .choices input{ position:absolute; opacity:0; width:1px; height:1px; }
+  .choices label{
+    font-size:13.5px;
+    padding:10px 16px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background: var(--surface-2);
+    cursor:pointer;
+    transition: all .15s;
+    user-select:none;
+  }
+  .choices label:hover{ border-color: var(--border-strong); }
+  .choices input:checked + label{
+    border-color: var(--amber);
+    background: var(--amber-soft);
+    color: var(--text);
+  }
+  .choices input:focus-visible + label{ box-shadow:0 0 0 3px var(--amber-soft); }
+  .choices.stack{ flex-direction:column; align-items:flex-start; }
+  .choices.stack label{ width:100%; }
+
+  .conditional{ margin-top:14px; }
+
+  .field-error{
+    display:none;
+    font-family: var(--font-mono);
+    font-size:12.5px;
+    color: var(--brick);
+    margin-top:10px;
+    padding:9px 12px;
+    background: var(--brick-soft);
+    border-radius:8px;
+  }
+  .field-error.show{ display:block; }
+
+  .nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:34px;
+    padding-top:22px;
+    border-top:1px solid var(--border);
+  }
+  button{ font-family: var(--font-body); font-size:14px; cursor:pointer; border-radius:10px; }
+  .btn-ghost{
+    background:transparent;
+    border:1px solid var(--border);
+    color: var(--text-muted);
+    padding:11px 18px;
+  }
+  .btn-ghost:hover{ border-color: var(--border-strong); color:var(--text); }
+  .btn-ghost:disabled{ opacity:0; pointer-events:none; }
+  .btn-primary{
+    background: var(--amber);
+    border:1px solid var(--amber);
+    color: var(--amber-ink);
+    font-weight:600;
+    padding:11px 22px;
+  }
+  .btn-primary:hover{ filter:brightness(1.06); }
+  .btn-primary:active{ transform: translateY(1px); }
+  .btn-primary:disabled{ opacity:.6; cursor:default; }
+
+  .success{ text-align:center; padding:20px 0 8px; }
+  .success .ring{
+    width:56px; height:56px; margin:0 auto 22px;
+    border-radius:50%;
+    background: var(--teal-soft);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .success h2{ font-family:var(--font-display); font-size:26px; margin:0 0 12px; }
+  .success p{ color:var(--text-muted); font-size:14.5px; max-width:46ch; margin:0 auto 22px; }
+  .success .contact{
+    font-family: var(--font-mono);
+    font-size:13px;
+    color: var(--text-muted);
+    border-top:1px solid var(--border);
+    padding-top:20px; margin-top:8px;
+  }
+  .success .contact b{ color:var(--text); font-weight:500; }
+  .sync-warning{
+    font-family: var(--font-mono);
+    font-size:12.5px;
+    color: var(--brick);
+    background: var(--brick-soft);
+    border-radius:8px;
+    padding:10px 14px;
+    margin-bottom:20px;
+    text-align:left;
+  }
+
+  footer.foot{
+    text-align:center;
+    font-family: var(--font-mono);
+    font-size:11.5px;
+    color:#57523f;
+    margin-top:26px;
+    letter-spacing:.04em;
+  }
+
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+
+<div class="shell" id="wizardShell">
+  <div class="eyebrow"><span class="dot"></span>BABS DEV UX STUDIO</div>
+  <header>
+    <h1>Parlons du site que vous voulez créer</h1>
+    <p>Ce questionnaire nous permet de cadrer précisément votre projet avant de vous proposer une offre adaptée. Comptez environ 5 à 8 minutes — vos réponses restent confidentielles et ne servent qu'à préparer votre devis.</p>
+  </header>
+
+  <div class="progress">
+    <div class="progress-track" id="progressTrack"></div>
+    <div class="progress-label"><span>ÉTAPE <b id="stepNum">01</b> / 06</span><span id="stepName">Vos coordonnées</span></div>
+  </div>
+
+  <form class="card" id="briefForm" novalidate>
+
+    <!-- STEP 1 -->
+    <section class="step" data-step="1">
+      <h2>Faisons connaissance</h2>
+      <p class="step-intro">Pour vous recontacter et personnaliser notre échange.</p>
+
+      <div class="row2">
+        <div class="field">
+          <label class="field-label" for="fullName">Nom complet <span class="req">*</span></label>
+          <input type="text" id="fullName" name="fullName" required placeholder="Ex. Aïcha Bennani">
+        </div>
+        <div class="field">
+          <label class="field-label" for="company">Entreprise / organisation <span class="opt">(optionnel)</span></label>
+          <input type="text" id="company" name="company" placeholder="Ex. Atelier Bennani">
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label class="field-label" for="email">Email <span class="req">*</span></label>
+          <input type="email" id="email" name="email" required placeholder="vous@exemple.com">
+        </div>
+        <div class="field">
+          <label class="field-label" for="phone">Téléphone <span class="opt">(optionnel)</span></label>
+          <input type="tel" id="phone" name="phone" placeholder="+212 6 00 00 00 00">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="sector">Secteur d'activité <span class="opt">(optionnel)</span></label>
+        <input type="text" id="sector" name="sector" placeholder="Ex. formation, commerce, artisanat, santé...">
+      </div>
+      <div class="field-error" data-error-for="1">Merci de renseigner votre nom et un email valide.</div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="step" data-step="2" hidden>
+      <h2>Votre projet</h2>
+      <p class="step-intro">Le type de site et son objectif principal.</p>
+
+      <div class="field">
+        <label class="field-label">Type de site souhaité <span class="req">*</span></label>
+        <div class="choices" data-group="siteType">
+          <input type="radio" name="siteType" id="st1" value="Site vitrine" required><label for="st1">Site vitrine</label>
+          <input type="radio" name="siteType" id="st2" value="E-commerce / boutique en ligne"><label for="st2">E-commerce</label>
+          <input type="radio" name="siteType" id="st3" value="Blog / magazine"><label for="st3">Blog / magazine</label>
+          <input type="radio" name="siteType" id="st4" value="Portfolio"><label for="st4">Portfolio</label>
+          <input type="radio" name="siteType" id="st5" value="Plateforme / application web"><label for="st5">Plateforme web</label>
+          <input type="radio" name="siteType" id="st6" value="Autre"><label for="st6">Autre</label>
+        </div>
+        <div class="conditional" id="siteTypeOtherWrap" hidden>
+          <input type="text" name="siteTypeOther" placeholder="Précisez le type de site">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Ce site existe-t-il déjà ? <span class="req">*</span></label>
+        <div class="choices" data-group="existingSite">
+          <input type="radio" name="existingSite" id="es1" value="Non, c'est une création" required><label for="es1">Non, création</label>
+          <input type="radio" name="existingSite" id="es2" value="Oui, à refaire"><label for="es2">Oui, à refaire</label>
+        </div>
+        <div class="conditional" id="existingUrlWrap" hidden>
+          <input type="url" name="existingSiteUrl" placeholder="URL du site actuel">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="domain">Nom de domaine <span class="opt">(déjà réservé ou souhaité)</span></label>
+        <input type="text" id="domain" name="domain" placeholder="Ex. www.monentreprise.ma">
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="mainGoal">Objectif principal du site <span class="req">*</span></label>
+        <textarea id="mainGoal" name="mainGoal" required placeholder="Ex. présenter mes prestations et générer des demandes de devis, vendre en ligne, informer mes clients..."></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="targetAudience">Public / clientèle visée <span class="opt">(optionnel)</span></label>
+        <textarea id="targetAudience" name="targetAudience" placeholder="Qui doit visiter ce site et être convaincu ?"></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="inspirations">Concurrents ou sites qui vous inspirent <span class="opt">(liens, optionnel)</span></label>
+        <textarea id="inspirations" name="inspirations" placeholder="Un lien par ligne, avec ce qui vous plaît sur chacun"></textarea>
+      </div>
+      <div class="field-error" data-error-for="2">Merci de préciser le type de site, son état actuel et l'objectif principal.</div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section class="step" data-step="3" hidden>
+      <h2>Contenu &amp; pages</h2>
+      <p class="step-intro">Ce que le site doit contenir, et où en est votre matière première.</p>
+
+      <div class="field">
+        <label class="field-label">Pages souhaitées <span class="req">*</span></label>
+        <div class="choices">
+          <input type="checkbox" name="pages" id="p1" value="Accueil"><label for="p1">Accueil</label>
+          <input type="checkbox" name="pages" id="p2" value="À propos"><label for="p2">À propos</label>
+          <input type="checkbox" name="pages" id="p3" value="Services / Prestations"><label for="p3">Services</label>
+          <input type="checkbox" name="pages" id="p4" value="Portfolio / Réalisations"><label for="p4">Portfolio</label>
+          <input type="checkbox" name="pages" id="p5" value="Boutique"><label for="p5">Boutique</label>
+          <input type="checkbox" name="pages" id="p6" value="Tarifs"><label for="p6">Tarifs</label>
+          <input type="checkbox" name="pages" id="p7" value="Blog / Actualités"><label for="p7">Blog</label>
+          <input type="checkbox" name="pages" id="p8" value="Témoignages / Avis"><label for="p8">Témoignages</label>
+          <input type="checkbox" name="pages" id="p9" value="FAQ"><label for="p9">FAQ</label>
+          <input type="checkbox" name="pages" id="p10" value="Contact"><label for="p10">Contact</label>
+          <input type="checkbox" name="pages" id="p11" value="Mentions légales"><label for="p11">Mentions légales</label>
+          <input type="checkbox" name="pages" id="p12" value="Autre"><label for="p12">Autre</label>
+        </div>
+        <div class="conditional" id="pagesOtherWrap" hidden>
+          <input type="text" name="pagesOther" placeholder="Précisez les autres pages">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Vos textes sont-ils prêts ? <span class="req">*</span></label>
+        <div class="choices" data-group="textsReady">
+          <input type="radio" name="textsReady" id="tr1" value="Oui, tout est prêt" required><label for="tr1">Oui, tout est prêt</label>
+          <input type="radio" name="textsReady" id="tr2" value="Partiellement"><label for="tr2">Partiellement</label>
+          <input type="radio" name="textsReady" id="tr3" value="Non, besoin d'aide à la rédaction"><label for="tr3">Besoin d'aide</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Vos photos / visuels sont-ils prêts ? <span class="req">*</span></label>
+        <div class="choices" data-group="visualsReady">
+          <input type="radio" name="visualsReady" id="vr1" value="Oui, tout est prêt" required><label for="vr1">Oui, tout est prêt</label>
+          <input type="radio" name="visualsReady" id="vr2" value="Partiellement"><label for="vr2">Partiellement</label>
+          <input type="radio" name="visualsReady" id="vr3" value="Non, besoin de visuels"><label for="vr3">Besoin de visuels</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Logo &amp; charte graphique <span class="opt">(optionnel)</span></label>
+        <div class="choices" data-group="brandAssets">
+          <input type="radio" name="brandAssets" id="ba1" value="J'ai les deux"><label for="ba1">J'ai les deux</label>
+          <input type="radio" name="brandAssets" id="ba2" value="Logo seul"><label for="ba2">Logo seul</label>
+          <input type="radio" name="brandAssets" id="ba3" value="Aucun des deux"><label for="ba3">Aucun des deux</label>
+        </div>
+      </div>
+      <div class="field-error" data-error-for="3">Merci de cocher au moins une page et d'indiquer l'état de vos textes et visuels.</div>
+    </section>
+
+    <!-- STEP 4 -->
+    <section class="step" data-step="4" hidden>
+      <h2>Style &amp; identité visuelle</h2>
+      <p class="step-intro">Tout est optionnel ici — donnez-nous ce que vous avez en tête.</p>
+
+      <div class="field">
+        <label class="field-label">Style recherché <span class="opt">(optionnel, plusieurs choix)</span></label>
+        <div class="choices">
+          <input type="checkbox" name="styles" id="sy1" value="Moderne &amp; épuré"><label for="sy1">Moderne &amp; épuré</label>
+          <input type="checkbox" name="styles" id="sy2" value="Luxueux / premium"><label for="sy2">Luxueux / premium</label>
+          <input type="checkbox" name="styles" id="sy3" value="Coloré &amp; dynamique"><label for="sy3">Coloré &amp; dynamique</label>
+          <input type="checkbox" name="styles" id="sy4" value="Corporate / sérieux"><label for="sy4">Corporate / sérieux</label>
+          <input type="checkbox" name="styles" id="sy5" value="Créatif / artistique"><label for="sy5">Créatif / artistique</label>
+          <input type="checkbox" name="styles" id="sy6" value="Minimaliste"><label for="sy6">Minimaliste</label>
+          <input type="checkbox" name="styles" id="sy7" value="Autre"><label for="sy7">Autre</label>
+        </div>
+        <div class="conditional" id="stylesOtherWrap" hidden>
+          <input type="text" name="stylesOther" placeholder="Précisez le style">
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label class="field-label" for="preferredColors">Couleurs préférées <span class="opt">(optionnel)</span></label>
+          <input type="text" id="preferredColors" name="preferredColors" placeholder="Ex. bleu marine, doré, blanc cassé">
+        </div>
+        <div class="field">
+          <label class="field-label" for="avoidColors">Couleurs à éviter <span class="opt">(optionnel)</span></label>
+          <input type="text" id="avoidColors" name="avoidColors" placeholder="Ex. rose, vert fluo">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="likedSites">Sites que vous aimez visuellement <span class="opt">(liens, optionnel)</span></label>
+        <textarea id="likedSites" name="likedSites" placeholder="Un lien par ligne, avec ce qui vous plaît"></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="toAvoid">Éléments à éviter <span class="opt">(optionnel)</span></label>
+        <textarea id="toAvoid" name="toAvoid" placeholder="Ex. animations trop chargées, polices manuscrites..."></textarea>
+      </div>
+    </section>
+
+    <!-- STEP 5 -->
+    <section class="step" data-step="5" hidden>
+      <h2>Fonctionnalités</h2>
+      <p class="step-intro">Ce dont le site a besoin pour fonctionner comme vous l'imaginez.</p>
+
+      <div class="field">
+        <label class="field-label">Fonctionnalités nécessaires <span class="opt">(optionnel, plusieurs choix)</span></label>
+        <div class="choices">
+          <input type="checkbox" name="features" id="f1" value="Formulaire de contact"><label for="f1">Formulaire de contact</label>
+          <input type="checkbox" name="features" id="f2" value="Prise de rendez-vous en ligne"><label for="f2">Rendez-vous en ligne</label>
+          <input type="checkbox" name="features" id="f3" value="Paiement en ligne"><label for="f3">Paiement en ligne</label>
+          <input type="checkbox" name="features" id="f4" value="Espace client / membre"><label for="f4">Espace client</label>
+          <input type="checkbox" name="features" id="f5" value="Site multilingue"><label for="f5">Multilingue</label>
+          <input type="checkbox" name="features" id="f6" value="Newsletter"><label for="f6">Newsletter</label>
+          <input type="checkbox" name="features" id="f7" value="Chat en direct"><label for="f7">Chat en direct</label>
+          <input type="checkbox" name="features" id="f8" value="Réseaux sociaux intégrés"><label for="f8">Réseaux sociaux</label>
+          <input type="checkbox" name="features" id="f9" value="Galerie photo / vidéo"><label for="f9">Galerie photo/vidéo</label>
+          <input type="checkbox" name="features" id="f10" value="Référencement SEO"><label for="f10">SEO</label>
+          <input type="checkbox" name="features" id="f11" value="Autre"><label for="f11">Autre</label>
+        </div>
+        <div class="conditional" id="featuresOtherWrap" hidden>
+          <input type="text" name="featuresOther" placeholder="Précisez la fonctionnalité">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="featuresDetails">Précisions utiles <span class="opt">(optionnel)</span></label>
+        <textarea id="featuresDetails" name="featuresDetails" placeholder="Détaillez si besoin l'une des fonctionnalités ci-dessus"></textarea>
+      </div>
+    </section>
+
+    <!-- STEP 6 -->
+    <section class="step" data-step="6" hidden>
+      <h2>Budget &amp; délai</h2>
+      <p class="step-intro">Pour vous proposer une offre réaliste et respecter votre calendrier.</p>
+
+      <div class="field">
+        <label class="field-label">Budget envisagé <span class="req">*</span></label>
+        <div class="choices stack" data-group="budget">
+          <input type="radio" name="budget" id="b1" value="Moins de 500 €" required><label for="b1">Moins de 500 €</label>
+          <input type="radio" name="budget" id="b2" value="500 – 1 500 €"><label for="b2">500 – 1 500 €</label>
+          <input type="radio" name="budget" id="b3" value="1 500 – 3 000 €"><label for="b3">1 500 – 3 000 €</label>
+          <input type="radio" name="budget" id="b4" value="3 000 – 5 000 €"><label for="b4">3 000 – 5 000 €</label>
+          <input type="radio" name="budget" id="b5" value="Plus de 5 000 €"><label for="b5">Plus de 5 000 €</label>
+          <input type="radio" name="budget" id="b6" value="À définir ensemble"><label for="b6">À définir ensemble</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Délai souhaité <span class="req">*</span></label>
+        <div class="choices" data-group="timeline">
+          <input type="radio" name="timeline" id="tl1" value="Urgent (moins d'1 mois)" required><label for="tl1">Urgent (&lt; 1 mois)</label>
+          <input type="radio" name="timeline" id="tl2" value="1 à 2 mois"><label for="tl2">1 à 2 mois</label>
+          <input type="radio" name="timeline" id="tl3" value="2 à 3 mois"><label for="tl3">2 à 3 mois</label>
+          <input type="radio" name="timeline" id="tl4" value="Flexible"><label for="tl4">Flexible</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="source">Comment avez-vous connu Babs Dev UX Studio ? <span class="opt">(optionnel)</span></label>
+        <input type="text" id="source" name="source" placeholder="Ex. recommandation, réseaux sociaux, Google...">
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="additionalNotes">Informations complémentaires <span class="opt">(optionnel)</span></label>
+        <textarea id="additionalNotes" name="additionalNotes" placeholder="Tout ce qui nous aiderait à mieux comprendre votre projet"></textarea>
+      </div>
+      <div class="field-error" data-error-for="6">Merci d'indiquer votre budget et votre délai souhaités.</div>
+    </section>
+
+    <!-- STEP 7 : SUCCESS -->
+    <section class="step success" data-step="7" hidden>
+      <div class="ring">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 12.5L9.5 18L20 6" stroke="#3db3a2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h2 id="successTitle">Merci !</h2>
+      <p>Votre brief a bien été transmis à Babs Dev UX Studio. Nous l'étudions et revenons vers vous sous 48h ouvrées avec une proposition adaptée à votre projet.</p>
+      <div class="sync-warning" id="syncWarning" hidden>L'envoi automatique n'a pas pu aboutir depuis ce navigateur. Merci de cliquer sur le bouton ci-dessous pour nous envoyer une copie par email, par sécurité.</div>
+      <button type="button" class="btn-primary" id="emailCopyBtn">Envoyer une copie par email</button>
+      <div class="contact">
+        BABS DEV UX STUDIO<br>
+        <b>globaltradingafricasquad@gmail.com</b> &middot; 06 84 53 79 16
+      </div>
+    </section>
+
+    <div class="nav" id="navBar">
+      <button type="button" class="btn-ghost" id="prevBtn">Précédent</button>
+      <button type="button" class="btn-primary" id="nextBtn">Suivant</button>
+    </div>
+  </form>
+
+  <footer class="foot">Babs Dev UX Studio — vos informations servent uniquement à préparer votre proposition.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // Adresse qui reçoit les briefs (via le relais gratuit FormSubmit — aucun compte requis côté client).
+  var TARGET_EMAIL = 'globaltradingafricasquad@gmail.com';
+
+  var TOTAL_STEPS = 6;
+  var current = 1;
+  var form = document.getElementById('briefForm');
+  var progressTrack = document.getElementById('progressTrack');
+  var stepNumEl = document.getElementById('stepNum');
+  var stepNameEl = document.getElementById('stepName');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+
+  var STEP_NAMES = {
+    1:'Vos coordonnées', 2:'Votre projet', 3:'Contenu & pages',
+    4:'Style & identité', 5:'Fonctionnalités', 6:'Budget & délai'
+  };
+
+  for (var i=1;i<=TOTAL_STEPS;i++){
+    var seg = document.createElement('div');
+    seg.className='seg';
+    seg.innerHTML='<span></span>';
+    progressTrack.appendChild(seg);
+  }
+
+  function getStepEl(n){ return form.querySelector('.step[data-step="'+n+'"]'); }
+  function getErrorEl(n){ return form.querySelector('.field-error[data-error-for="'+n+'"]'); }
+
+  function renderProgress(){
+    var segs = progressTrack.children;
+    for (var i=0;i<segs.length;i++){
+      segs[i].classList.remove('active','done');
+      if (i+1 < current) segs[i].classList.add('done');
+      else if (i+1 === current) segs[i].classList.add('active');
+    }
+    stepNumEl.textContent = String(current).padStart(2,'0');
+    stepNameEl.textContent = STEP_NAMES[current] || '';
+  }
+
+  function showStep(n){
+    for (var i=1;i<=7;i++){
+      var el = getStepEl(i);
+      if (el) el.hidden = (i !== n);
+    }
+    var isSuccess = (n === 7);
+    document.getElementById('navBar').hidden = isSuccess;
+    document.querySelector('.progress').hidden = isSuccess;
+    if (!isSuccess){
+      prevBtn.disabled = (n === 1);
+      nextBtn.textContent = (n === TOTAL_STEPS) ? 'Envoyer mon brief' : 'Suivant';
+      renderProgress();
+    }
+  }
+
+  function validateStep(n){
+    var el = getStepEl(n);
+    var errorEl = getErrorEl(n);
+    var ok = true;
+
+    var requiredInputs = el.querySelectorAll('input[required]');
+    for (var i=0;i<requiredInputs.length;i++){
+      var inp = requiredInputs[i];
+      if (inp.type === 'radio'){
+        var group = el.querySelectorAll('input[name="'+inp.name+'"]');
+        var any = Array.prototype.some.call(group, function(g){ return g.checked; });
+        if (!any) ok = false;
+      } else if (!inp.checkValidity()){
+        ok = false;
+      }
+    }
+    var requiredTextareas = el.querySelectorAll('textarea[required]');
+    for (var j=0;j<requiredTextareas.length;j++){
+      if (!requiredTextareas[j].value.trim()) ok = false;
+    }
+    if (n === 3){
+      var pagesChecked = el.querySelectorAll('input[name="pages"]:checked');
+      if (pagesChecked.length === 0) ok = false;
+    }
+    if (errorEl) errorEl.classList.toggle('show', !ok);
+    return ok;
+  }
+
+  nextBtn.addEventListener('click', function(){
+    if (current <= TOTAL_STEPS && !validateStep(current)) return;
+    if (current === TOTAL_STEPS){
+      submitBrief();
+      return;
+    }
+    current++;
+    showStep(current);
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+  prevBtn.addEventListener('click', function(){
+    if (current === 1) return;
+    current--;
+    showStep(current);
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  // conditional "autre" reveals
+  function bindReveal(radioOrCheckValue, wrapId, name){
+    form.addEventListener('change', function(e){
+      if (e.target.name !== name) return;
+      var wrap = document.getElementById(wrapId);
+      if (!wrap) return;
+      if (e.target.type === 'radio'){
+        wrap.hidden = (e.target.value !== radioOrCheckValue) || !e.target.checked;
+      } else {
+        var box = form.querySelector('input[name="'+name+'"][value="'+CSS.escape(radioOrCheckValue)+'"]');
+        wrap.hidden = !(box && box.checked);
+      }
+    });
+  }
+  bindReveal('Autre','siteTypeOtherWrap','siteType');
+  bindReveal("Oui, à refaire",'existingUrlWrap','existingSite');
+  bindReveal('Autre','pagesOtherWrap','pages');
+  bindReveal('Autre','stylesOtherWrap','styles');
+  bindReveal('Autre','featuresOtherWrap','features');
+
+  function collectData(){
+    var fd = new FormData(form);
+    var data = {};
+    fd.forEach(function(value, key){
+      if (data.hasOwnProperty(key)){
+        if (Array.isArray(data[key])) data[key].push(value);
+        else data[key] = [data[key], value];
+      } else {
+        data[key] = value;
+      }
+    });
+    return data;
+  }
+
+  function buildEmailBody(data){
+    var lines = [];
+    lines.push('Nouveau brief de projet site web — '+ (data.fullName || ''));
+    lines.push('');
+    Object.keys(data).forEach(function(k){
+      if (k.charAt(0) === '_') return;
+      var v = data[k];
+      if (Array.isArray(v)) v = v.join(', ');
+      if (v) lines.push(k + ': ' + v);
+    });
+    return lines.join('\n');
+  }
+
+  var lastData = null;
+
+  async function submitBrief(){
+    var data = collectData();
+    data.submittedAt = new Date().toLocaleString('fr-FR');
+    data._subject = 'Nouveau brief site web — ' + (data.fullName || 'client');
+    data._template = 'table';
+    data._captcha = 'false';
+    lastData = data;
+
+    document.getElementById('successTitle').textContent = data.fullName ? ('Merci, ' + data.fullName + ' !') : 'Merci !';
+
+    var sent = false;
+    try {
+      var resp = await fetch('https://formsubmit.co/ajax/' + encodeURIComponent(TARGET_EMAIL), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      sent = resp.ok;
+    } catch(e){ sent = false; }
+
+    document.getElementById('syncWarning').hidden = sent;
+    current = 7;
+    showStep(7);
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  document.getElementById('emailCopyBtn').addEventListener('click', function(){
+    var data = lastData || collectData();
+    var subject = encodeURIComponent('Brief site web — ' + (data.fullName || 'nouveau client'));
+    var body = encodeURIComponent(buildEmailBody(data));
+    window.location.href = 'mailto:' + TARGET_EMAIL + '?subject=' + subject + '&body=' + body;
+  });
+
+  showStep(1);
+})();
+</script>
+</body>
+</html>
